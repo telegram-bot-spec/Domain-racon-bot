@@ -12,7 +12,7 @@ from .formatters import (
     format_list,
     escape_markdown,
 )
-from .progress_tracker import ProgressTracker
+from .progress_tracker import ProgressTracker, create_tracker_for_scan
 
 __all__ = [
     'is_valid_domain',
@@ -28,6 +28,7 @@ __all__ = [
     'format_list',
     'escape_markdown',
     'ProgressTracker',
+    'create_tracker_for_scan',
 ]
 
 __version__ = "2.0.0"
