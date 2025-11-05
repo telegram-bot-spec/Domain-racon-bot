@@ -52,7 +52,21 @@ def require_plan(minimum_plan: str = 'free', allow_commands: Optional[List[str]]
             username = update.effective_user.username
             first_name = update.effective_user.first_name
             
-            # Get or create user
+            # ✅ ADMIN BYPASS - MOST IMPORTANT FIX!
+            if is_admin(user_id):
+                # Get or create admin user
+                user = db.get_or_create_user(user_id, username, first_name)
+                
+                # ✅ AUTO-UPGRADE ADMIN TO LIFETIME IF NOT ALREADY
+                if user['plan'] != 'lifetime':
+                    db.update_user_plan(user_id, 'lifetime', None)
+                    user = db.get_user(user_id)
+                
+                # Store user info and allow access
+                context.user_data['db_user'] = user
+                return await func(update, context)
+            
+            # Get or create user (non-admin flow)
             user = db.get_or_create_user(user_id, username, first_name)
             
             # Check if banned
@@ -172,6 +186,10 @@ def check_rate_limit(func):
     @wraps(func)
     async def wrapper(update, context):
         user_id = update.effective_user.id
+        
+        # ✅ ADMIN BYPASS FOR RATE LIMITS TOO
+        if is_admin(user_id):
+            return await func(update, context)
         
         # Import rate limiter
         from utils.rate_limiter import rate_limiter
